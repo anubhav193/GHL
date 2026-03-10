@@ -1,0 +1,139 @@
+---
+description: "Enforce Tailwind design system usage with global theme tokens and prevent hardcoded styles or colors."
+alwaysApply: true
+---
+
+# Design System Rules
+
+This project uses **TailwindCSS with global theme tokens**.
+
+All styling must use **design tokens defined in the Tailwind config**.
+
+Never hardcode colors, spacing, or typography.
+
+---
+
+## Forbidden Styling
+
+Do NOT hardcode values such as:
+
+bg-blue-500
+text-red-500
+border-gray-300
+rounded-[6px]
+text-[13px]
+px-[17px]
+
+These create inconsistent UI.
+
+---
+
+## Required Styling Approach
+
+Use **theme tokens defined in Tailwind config**.
+
+Examples:
+
+bg-primary
+bg-secondary
+text-primary
+text-muted
+border-default
+
+Example:
+
+<Button class="bg-primary text-on-primary">
+
+---
+
+## Global Theme Source
+
+All colors must originate from:
+
+tailwind.config.ts
+
+Example:
+
+theme: {
+  extend: {
+    colors: {
+      primary: "#4F46E5",
+      secondary: "#6366F1",
+      surface: "#FFFFFF",
+      muted: "#6B7280"
+    }
+  }
+}
+
+Components must reference these tokens.
+
+---
+
+## Component Theming Rule
+
+All reusable components must derive styling from theme tokens.
+
+Example Button:
+
+<button class="bg-primary text-white px-4 py-2 rounded-md">
+  <slot />
+</button>
+
+Never hardcode arbitrary colors.
+
+---
+
+## Dark Mode Policy
+
+Dark mode is **not supported at this time**.
+
+Do not implement dark-mode classes or logic in components.
+
+However, the design system should be structured so that dark mode can be added later
+by modifying theme tokens in **one central place (tailwind.config.ts)**.
+
+Components should always rely on theme tokens so future theme changes propagate automatically.
+
+---
+
+## Tailwind Utility Restrictions
+
+Allowed:
+
+- layout utilities
+- flex/grid
+- spacing using Tailwind scale
+- typography scale
+
+Not allowed:
+
+- arbitrary values
+- inline style overrides
+- custom hex colors
+
+Forbidden examples:
+
+bg-[#1A1A1A]
+text-[#333]
+px-[13px]
+
+---
+
+## AI Code Generation Rules
+
+When generating UI:
+
+1. Use Tailwind utilities referencing theme tokens
+2. Never hardcode hex values
+3. Never introduce new colors
+4. If a new design token is needed → update `tailwind.config.ts`
+
+---
+
+## Goal
+
+Ensure the entire application maintains:
+
+- visual consistency
+- centralized theming
+- maintainable design tokens

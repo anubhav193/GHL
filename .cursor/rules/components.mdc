@@ -1,0 +1,135 @@
+---
+description: "Define Vue 3 component architecture using Composition API, TypeScript, and reusable component patterns."
+alwaysApply: true
+---
+
+# Vue Component Architecture Rules
+
+All components must follow **Vue 3 Composition API with TypeScript**.
+
+Use `<script setup lang="ts">`.
+
+---
+
+## Standard Component Structure
+
+Every component must follow this structure:
+
+<script setup lang="ts">
+
+// imports
+import { computed } from "vue"
+
+// props
+interface Props {
+  label?: string
+}
+
+const props = defineProps<Props>()
+
+</script>
+
+<template>
+
+</template>
+
+<style scoped>
+</style>
+
+---
+
+## Component Responsibilities
+
+Components should be:
+
+- reusable
+- small
+- single-responsibility
+
+Avoid components larger than **150–200 lines**.
+
+If a component grows too large:
+
+Split into smaller components inside `/components`.
+
+---
+
+## Naming Conventions
+
+Component files must use **PascalCase**.
+
+Examples:
+
+Button.vue
+UserAvatar.vue
+DashboardCard.vue
+FormInput.vue
+
+Usage:
+
+<Button />
+<UserAvatar />
+
+---
+
+## Component Categories
+
+Structure components into logical folders if the library grows.
+
+Example:
+
+/components
+  /ui
+    Button.vue
+    Input.vue
+    Modal.vue
+    Card.vue
+
+  /form
+    FormField.vue
+    FormInput.vue
+
+  /layout
+    PageContainer.vue
+    AppHeader.vue
+
+---
+
+## Props Rules
+
+All props must be typed.
+
+Example:
+
+interface Props {
+  label: string
+  disabled?: boolean
+}
+
+---
+
+## Emitting Events
+
+Use typed emits.
+
+Example:
+
+const emit = defineEmits<{
+  (e: "submit"): void
+}>()
+
+---
+
+## Logic Separation
+
+If logic becomes complex:
+
+Move it to:
+
+/composables
+
+Example:
+
+/composables/useForm.ts
+
+Components should focus primarily on **UI rendering**.

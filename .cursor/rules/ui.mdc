@@ -1,0 +1,138 @@
+---
+description: "Enforce usage of shared UI components from /components and prevent inline UI primitives or style overrides."
+alwaysApply: true
+---
+
+# UI Component Usage Rules
+
+This project uses **Vue 3 + TypeScript + Tailwind** with a centralized component system.
+
+All UI primitives must come from the `/components` directory.
+
+The goal is to maintain a **consistent design system and prevent style drift**.
+
+---
+
+## Core Rule
+
+Never create UI primitives directly inside pages or feature modules.
+
+Always import them from `/components`.
+
+UI primitives include:
+
+- Button
+- Input
+- Textarea
+- Select
+- Checkbox
+- Radio
+- Modal
+- Dialog
+- Card
+- Badge
+- Tabs
+- Dropdown
+- Form fields
+- Toggle
+- Avatar
+- Tooltip
+
+Example:
+
+import Button from "@/components/Button.vue"
+import Input from "@/components/Input.vue"
+
+Never write inline primitives such as:
+
+<button class="bg-blue-500 px-4 py-2">Submit</button>
+<input class="border p-2"/>
+
+---
+
+## Styling Rules
+
+Component styling must **not be overridden inline**.
+
+Forbidden:
+
+<Button class="bg-red-500 text-xs rounded-none">
+
+Allowed:
+
+<Button>Save</Button>
+
+Layout utilities are allowed **only on containers**.
+
+Example:
+
+<div class="flex justify-end mt-4">
+  <Button>Save</Button>
+</div>
+
+---
+
+## Creating New Components
+
+If a UI element does not exist:
+
+1. Do NOT implement it inline in a page
+2. Create a reusable component inside `/components`
+3. Implement styling using theme tokens
+4. Import it where needed
+
+Example workflow:
+
+Step 1 — create component
+
+/components/UserAvatar.vue
+
+Step 2 — implement reusable logic
+
+Step 3 — import in page
+
+import UserAvatar from "@/components/UserAvatar.vue"
+
+---
+
+## Page Layer Restrictions
+
+Pages should only:
+
+- compose existing components
+- handle layout
+- fetch data
+- connect stores
+
+Pages must NOT:
+
+- define reusable UI primitives
+- duplicate component logic
+- contain large UI blocks that belong in components
+
+---
+
+## Reusability Rule
+
+If UI logic or template exceeds **15–20 lines**, extract it into `/components`.
+
+Bad:
+
+/views/dashboard.vue
+300 lines of UI
+
+Good:
+
+/components/DashboardCard.vue
+/views/dashboard.vue
+
+---
+
+## AI Code Generation Rule
+
+When generating UI code:
+
+1. Check `/components` first
+2. Reuse existing components
+3. If missing → create a new component in `/components`
+4. Never generate raw HTML primitives inside pages
