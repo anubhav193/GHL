@@ -34,7 +34,7 @@ const handleSubmit = async () => {
 
     setUser(user);
 
-    const redirect = (route.query.redirect as string | undefined) ?? '/app/dummy';
+    const redirect = (route.query.redirect as string | undefined) ?? '/app';
     router.push(redirect);
   } catch (error: any) {
     errorMessage.value =

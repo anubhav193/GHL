@@ -13,20 +13,22 @@ export interface JwtPayload {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(configService: ConfigService) {
+    const cookieExtractor = (req: Request): string | null => {
+      const cookies = req.cookies as Record<string, string> | undefined;
+      return cookies?.[AUTH_COOKIE_NAME] ?? null;
+    };
+
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        (req: Request) => req?.cookies?.[AUTH_COOKIE_NAME] ?? null,
-      ]),
+      jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET'),
     });
   }
 
-  async validate(payload: JwtPayload) {
+  validate(payload: JwtPayload) {
     return {
       userId: payload.sub,
       email: payload.email,
     };
   }
 }
-

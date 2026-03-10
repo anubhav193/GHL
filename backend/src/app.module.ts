@@ -4,6 +4,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TestModule } from './test/test.module';
 import { AuthModule } from './auth/auth.module';
+import { NangoModule } from './nango/nango.module';
+import { IntegrationsModule } from './integrations/integrations.module';
+import { AgentsModule } from './agents/agents.module';
 
 @Module({
   imports: [
@@ -12,6 +15,9 @@ import { AuthModule } from './auth/auth.module';
     }),
     TestModule,
     AuthModule,
+    NangoModule,
+    IntegrationsModule,
+    AgentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

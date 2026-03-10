@@ -11,18 +11,19 @@ import { JwtStrategy } from './jwt.strategy';
     ConfigModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        // Cast because the newer @nestjs/jwt expects a StringValue/number type
-        // and our env-based string is compatible at runtime.
-        signOptions: {
-          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ?? '15m') as any,
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const expiresIn = configService.get<string>('JWT_EXPIRES_IN') ?? '7d';
+
+        return {
+          secret: configService.get<string>('JWT_SECRET'),
+          signOptions: {
+            expiresIn,
+          },
+        };
+      },
     }),
   ],
   providers: [AuthService, PrismaService, JwtStrategy],
   controllers: [AuthController],
 })
 export class AuthModule {}
-

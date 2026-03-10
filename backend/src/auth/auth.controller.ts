@@ -15,13 +15,22 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { AUTH_COOKIE_NAME } from './jwt.constants';
 
+interface AuthenticatedRequest extends Request {
+  user?: {
+    userId: number;
+    email?: string;
+  };
+  cookies?: Record<string, string>;
+}
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
-  signup(@Body() body: CreateUserDto, @Req() req: Request) {
-    const hasAuthCookie = !!req.cookies?.[AUTH_COOKIE_NAME];
+  signup(@Body() body: CreateUserDto, @Req() req: AuthenticatedRequest) {
+    const cookies = req.cookies;
+    const hasAuthCookie = !!cookies?.[AUTH_COOKIE_NAME];
 
     if (hasAuthCookie) {
       throw new BadRequestException('You are already logged in.');
@@ -40,7 +49,7 @@ export class AuthController {
     res.cookie(AUTH_COOKIE_NAME, accessToken, {
       httpOnly: true,
       sameSite: 'lax',
-      maxAge: 15 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return { user };
@@ -48,8 +57,11 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async me(@Req() req: Request) {
-    const userId = (req as any).user?.userId as number | undefined;
+  async me(
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const userId = req.user?.userId;
 
     if (!userId) {
       // Guard should normally prevent this, but be defensive
@@ -57,6 +69,16 @@ export class AuthController {
     }
 
     const user = await this.authService.findUserById(userId);
+
+    // Issue a fresh token and reset the cookie to enable sliding expiration
+    const { accessToken } = await this.authService.issueAuthToken(user);
+
+    res.cookie(AUTH_COOKIE_NAME, accessToken, {
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     return { user };
   }
 
@@ -71,4 +93,3 @@ export class AuthController {
     return { success: true };
   }
 }
-

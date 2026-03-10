@@ -9,5 +9,3 @@ export class PrismaService implements OnModuleDestroy {
     await this.client.$disconnect();
   }
 }
-
-

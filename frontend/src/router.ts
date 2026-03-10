@@ -4,6 +4,11 @@ import TestView from './views/TestView.vue';
 import ComponentsPage from './views/ComponentsPage.vue';
 import AgentStudioLanding from './views/AgentStudioLanding.vue';
 import SignupView from './views/SignupView.vue';
+import AppLayout from './views/AppLayout.vue';
+import AppChats from './views/app/AppChats.vue';
+import AppAgents from './views/app/AppAgents.vue';
+import AppIntegrations from './views/app/AppIntegrations.vue';
+import AppSettings from './views/app/AppSettings.vue';
 import AppDummy from './views/AppDummy.vue';
 import { useAuth } from './composables/useAuth';
 
@@ -34,18 +39,38 @@ const routes = [
   {
     path: '/app',
     name: 'app-root',
-    redirect: '/app/dummy',
     meta: {
       requiresAuth: true,
     },
-  },
-  {
-    path: '/app/dummy',
-    name: 'app-dummy',
-    component: AppDummy,
-    meta: {
-      requiresAuth: true,
-    },
+    component: AppLayout,
+    redirect: '/app/chats',
+    children: [
+      {
+        path: 'chats',
+        name: 'app-chats',
+        component: AppChats,
+      },
+      {
+        path: 'agents',
+        name: 'app-agents',
+        component: AppAgents,
+      },
+      {
+        path: 'integrations',
+        name: 'app-integrations',
+        component: AppIntegrations,
+      },
+      {
+        path: 'settings',
+        name: 'app-settings',
+        component: AppSettings,
+      },
+      {
+        path: 'dummy',
+        name: 'app-dummy',
+        component: AppDummy,
+      },
+    ],
   },
 ];
 

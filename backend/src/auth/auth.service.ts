@@ -43,9 +43,14 @@ export class AuthService {
       });
 
       return this.mapUser(user);
-    } catch (error: any) {
+    } catch (error) {
       // Handle potential race-condition on unique email constraint
-      if (error?.code === 'P2002') {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code?: unknown }).code === 'P2002'
+      ) {
         throw new BadRequestException('Email already in use');
       }
       throw error;
@@ -73,15 +78,7 @@ export class AuthService {
   async login(payload: LoginUserDto) {
     const user = await this.validateUser(payload.email, payload.password);
 
-    const accessToken = await this.jwtService.signAsync({
-      sub: user.id,
-      email: user.email,
-    });
-
-    return {
-      accessToken,
-      user: this.mapUser(user),
-    };
+    return this.issueAuthToken(user);
   }
 
   async findUserById(id: number) {
@@ -94,6 +91,25 @@ export class AuthService {
     }
 
     return this.mapUser(user);
+  }
+
+  async issueAuthToken(user: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }) {
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+      email: user.email,
+    });
+
+    return {
+      accessToken,
+      user: this.mapUser(user),
+    };
   }
 
   private mapUser(user: {
@@ -114,4 +130,3 @@ export class AuthService {
     };
   }
 }
-

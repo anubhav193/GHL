@@ -22,6 +22,7 @@ import ChatInputBar from '@/components/ui/ChatInputBar.vue';
 import TagChip from '@/components/ui/TagChip.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import AudioTranscriber from '@/components/ui/AudioTranscriber.vue';
+import Tabs from '@/components/ui/Tabs.vue';
 
 const selectOptions = [
   { label: 'Default agent', value: 'default' },
@@ -32,6 +33,12 @@ const selectOptions = [
 const streamingResponses = ref(true);
 const selectedModel = ref<'gpt-4o' | 'gpt-4o-mini'>('gpt-4o');
 const autoSaveAgents = ref(true);
+
+const navTabsValue = ref<'chats' | 'agents' | 'integrations' | 'settings'>(
+  'chats',
+);
+const smallTabsValue = ref<'small-1' | 'small-2'>('small-1');
+const largeTabsValue = ref<'large-1' | 'large-2'>('large-1');
 </script>
 
 <template>
@@ -49,6 +56,62 @@ const autoSaveAgents = ref(true);
       </header>
 
       <div class="space-y-10">
+        <section>
+          <SectionHeader
+            title="Navigation"
+            subtitle="Tab-based navigation used in the app layout."
+          />
+          <div class="grid gap-6 md:grid-cols-2">
+            <Card>
+              <template #header>
+                <h3 class="text-sm font-semibold text-text-primary">Tabs (base)</h3>
+              </template>
+              <Tabs
+                :items="[
+                  { id: 'chats', label: 'Chats' },
+                  { id: 'agents', label: 'Agents' },
+                  { id: 'integrations', label: 'Integrations' },
+                  { id: 'settings', label: 'Settings' },
+                ]"
+                v-model="navTabsValue"
+                size="base"
+              />
+            </Card>
+
+            <div class="space-y-4">
+              <Card>
+                <template #header>
+                  <h3 class="text-sm font-semibold text-text-primary">Tabs sizes</h3>
+                </template>
+                <div class="space-y-4">
+                  <div class="space-y-2">
+                    <p class="text-xs text-text-muted">Small</p>
+                    <Tabs
+                      :items="[
+                        { id: 'small-1', label: 'Option A' },
+                        { id: 'small-2', label: 'Option B' },
+                      ]"
+                      v-model="smallTabsValue"
+                      size="small"
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <p class="text-xs text-text-muted">Large</p>
+                    <Tabs
+                      :items="[
+                        { id: 'large-1', label: 'Option A' },
+                        { id: 'large-2', label: 'Option B' },
+                      ]"
+                      v-model="largeTabsValue"
+                      size="large"
+                    />
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </section>
+
         <section>
           <SectionHeader
             title="Form controls"

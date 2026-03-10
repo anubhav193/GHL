@@ -10,4 +10,3 @@ export class TestController {
     return this.testService.getDummyItem();
   }
 }
-

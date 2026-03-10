@@ -1,8 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const cookieParser = require('cookie-parser');
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,8 +16,7 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  const frontendOrigin =
-    process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173';
+  const frontendOrigin = process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173';
 
   app.enableCors({
     origin: frontendOrigin,

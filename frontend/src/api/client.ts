@@ -26,6 +26,31 @@ interface ApiErrorShape {
   message?: string | string[];
 }
 
+export interface IntegrationListItem {
+  id: number;
+  uniqueKey: string;
+  name: string | null;
+  provider: string;
+  logoUrl: string | null;
+  actionsEnabled: number;
+  status: 'connected' | 'disconnected';
+  connectionId: string | null;
+}
+
+export interface AgentToolOption {
+  id: number;
+  actionName: string;
+  description: string | null;
+  integrationName: string;
+}
+
+export interface AgentListItem {
+  id: number;
+  name: string;
+  systemPrompt: string;
+  tools: AgentToolOption[];
+}
+
 async function handleJsonResponse<T>(response: Response): Promise<T> {
   const contentType = response.headers.get('content-type');
   const isJson = contentType?.includes('application/json');
@@ -92,4 +117,110 @@ export async function logout() {
 
   return handleJsonResponse<{ success: boolean }>(response);
 }
+
+export async function getIntegrations(options?: { force?: boolean }) {
+  const url = new URL(`${API_BASE_URL}/integrations`);
+
+  if (options?.force) {
+    url.searchParams.set('force', '1');
+  }
+
+  const response = await fetch(url.toString(), {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  return handleJsonResponse<{ integrations: IntegrationListItem[] }>(response);
+}
+
+export async function createIntegrationConnectSession(integrationId: number) {
+  const response = await fetch(
+    `${API_BASE_URL}/integrations/${integrationId}/connect-session`,
+    {
+      method: 'POST',
+      credentials: 'include',
+    },
+  );
+
+  return handleJsonResponse<{ session: { token: string; connect_link?: string } }>(
+    response,
+  );
+}
+
+export async function disconnectIntegration(
+  integrationId: number,
+  connectionId: string,
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/integrations/${integrationId}/connections/${encodeURIComponent(
+      connectionId,
+    )}`,
+    {
+      method: 'DELETE',
+      credentials: 'include',
+    },
+  );
+
+  return handleJsonResponse<{ success: boolean }>(response);
+}
+
+export async function getAgents() {
+  const response = await fetch(`${API_BASE_URL}/agents`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  return handleJsonResponse<{ agents: AgentListItem[] }>(response);
+}
+
+export async function getAgentTools() {
+  const response = await fetch(`${API_BASE_URL}/agents/tools`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+
+  return handleJsonResponse<{ tools: AgentToolOption[] }>(response);
+}
+
+interface SaveAgentPayload {
+  name: string;
+  systemPrompt: string;
+  toolIds?: number[];
+}
+
+export async function createAgent(payload: SaveAgentPayload) {
+  const response = await fetch(`${API_BASE_URL}/agents`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return handleJsonResponse<{ agent: AgentListItem }>(response);
+}
+
+export async function updateAgent(id: number, payload: SaveAgentPayload) {
+  const response = await fetch(`${API_BASE_URL}/agents/${id}`, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return handleJsonResponse<{ agent: AgentListItem }>(response);
+}
+
+export async function deleteAgent(id: number) {
+  const response = await fetch(`${API_BASE_URL}/agents/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+
+  return handleJsonResponse<{ success: boolean }>(response);
+}
+
 
