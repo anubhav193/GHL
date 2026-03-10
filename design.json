@@ -1,0 +1,583 @@
+{
+  "meta": {
+    "name": "Valora Dashboard Theme",
+    "version": "1.0.0",
+    "description": "High-level design system guidelines inspired by the Valora AI Revenue Optimizer dashboard. Use this file to generate UI that visually matches the provided reference: calm, professional, data-dense, and highly readable.",
+    "platform": "Web",
+    "framework": "Vue 3 + TypeScript",
+    "primaryFontNote": "Assume the Google Sans font is globally loaded via the provided <link> tags. All text should default to this font stack unless explicitly overridden.",
+    "source": "Dashboard screenshot provided by user (AI Pricing Optimizer / Valora).",
+    "usageGuidelines": [
+      "Always prefer semantic tokens (colors, spacing, typography names) from this file over hard-coded values.",
+      "When generating components, reference the component definitions here to keep structure, spacing, and hierarchy consistent.",
+      "Avoid introducing new visual styles (colors, radii, shadows) unless they clearly extend existing tokens."
+    ]
+  },
+  "foundations": {
+    "colors": {
+      "description": "Semantic color tokens that create a soft, neutral, professional analytics dashboard. Colors are approximate matches to the reference and are intended as guidelines, not strict brand codes.",
+      "text": {
+        "primary": "#101827",
+        "secondary": "#4B5563",
+        "muted": "#6B7280",
+        "subtle": "#9CA3AF",
+        "onPrimary": "#FFFFFF",
+        "onAccent": "#FFFFFF",
+        "onSoft": "#111827"
+      },
+      "background": {
+        "page": "#F3F4F6",
+        "surface": "#FFFFFF",
+        "surface-subtle": "#F9FAFB",
+        "surface-elevated": "#FFFFFF",
+        "sidebar": "#FFFFFF",
+        "sidebar-rail": "#F3F4F6"
+      },
+      "border": {
+        "subtle": "#E5E7EB",
+        "medium": "#D1D5DB",
+        "strong": "#9CA3AF",
+        "divider": "#E5E7EB"
+      },
+      "brand": {
+        "primary": "#2563EB",
+        "primary-soft": "#EEF2FF",
+        "primary-strong": "#1D4ED8",
+        "accent": "#6366F1"
+      },
+      "state": {
+        "success": "#16A34A",
+        "success-soft": "#DCFCE7",
+        "warning": "#F59E0B",
+        "warning-soft": "#FEF3C7",
+        "danger": "#DC2626",
+        "danger-soft": "#FEE2E2",
+        "info": "#0EA5E9",
+        "info-soft": "#E0F2FE"
+      },
+      "charts": {
+        "chart-blue": "#2563EB",
+        "chart-green": "#22C55E",
+        "chart-orange": "#F97316",
+        "chart-red": "#EF4444",
+        "chart-muted": "#E5E7EB",
+        "gauge-neutral": "#E5E7EB"
+      },
+      "statesByMeaning": {
+        "positiveChange": "state.success",
+        "negativeChange": "state.danger",
+        "neutralChange": "brand.primary",
+        "warningChange": "state.warning"
+      }
+    },
+    "typography": {
+      "description": "Use Google Sans as the global font to convey a clean, modern, product-like feel. Hierarchy is created via size, weight, and color, not decorative fonts.",
+      "fontFamilies": {
+        "primary": "\"Google Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", system-ui, sans-serif",
+        "monospace": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace"
+      },
+      "scale": {
+        "display-lg": {
+          "fontSize": 32,
+          "lineHeight": 40,
+          "fontWeight": 600,
+          "letterSpacing": -0.02,
+          "usage": "Primary page titles such as 'AI Revenue Optimizer Overview'. Limited to one per page."
+        },
+        "display-md": {
+          "fontSize": 24,
+          "lineHeight": 32,
+          "fontWeight": 600,
+          "letterSpacing": -0.01,
+          "usage": "Section headers above large groups of cards or charts."
+        },
+        "title-lg": {
+          "fontSize": 18,
+          "lineHeight": 24,
+          "fontWeight": 600,
+          "letterSpacing": -0.01,
+          "usage": "Card titles (e.g., 'Demand health', 'Revenue impact')."
+        },
+        "title-sm": {
+          "fontSize": 14,
+          "lineHeight": 20,
+          "fontWeight": 600,
+          "letterSpacing": 0,
+          "usage": "Subtitles and section labels inside cards, nav group labels."
+        },
+        "body": {
+          "fontSize": 14,
+          "lineHeight": 22,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "usage": "Default body copy for descriptions and supporting text."
+        },
+        "body-sm": {
+          "fontSize": 13,
+          "lineHeight": 20,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "usage": "Muted helper text, captions, timestamps."
+        },
+        "label": {
+          "fontSize": 12,
+          "lineHeight": 16,
+          "fontWeight": 500,
+          "letterSpacing": 0.02,
+          "usage": "Uppercase or small label text, small metric captions, chip labels."
+        },
+        "kpi": {
+          "fontSize": 28,
+          "lineHeight": 32,
+          "fontWeight": 600,
+          "letterSpacing": -0.02,
+          "usage": "Key metrics such as large revenue numbers or main KPIs."
+        }
+      },
+      "rules": [
+        "Use the primary font family for all text in the app shell, navigation, cards, charts, and controls.",
+        "Avoid mixing in additional fonts; rely on weight, color, and size to create hierarchy.",
+        "Keep card titles at title-lg and never larger than the page title.",
+        "Use muted or subtle text colors for secondary and tertiary information to keep emphasis on the main KPIs."
+      ]
+    },
+    "spacing": {
+      "description": "Spacing is consistent and moderate, enabling high information density while keeping the interface calm and breathable.",
+      "baseUnit": 4,
+      "scale": {
+        "xs": 4,
+        "sm": 8,
+        "md": 12,
+        "lg": 16,
+        "xl": 20,
+        "2xl": 24,
+        "3xl": 32,
+        "4xl": 40
+      },
+      "usageGuidelines": [
+        "Use 24–32px padding for outer page gutters and between the sidebar and main content.",
+        "Use 20–24px internal padding for primary cards and modules.",
+        "Use 12–16px vertical spacing between stacked elements within a card.",
+        "Keep spacing between related text elements tight (4–8px) to visually group them.",
+        "Maintain consistent gaps between cards in a grid (16–24px)."
+      ]
+    },
+    "radius": {
+      "description": "Rounded corners are soft but not fully pill-shaped, creating a friendly yet professional look.",
+      "tokens": {
+        "none": 0,
+        "sm": 4,
+        "md": 8,
+        "lg": 12,
+        "xl": 16,
+        "pill": 999
+      },
+      "usageGuidelines": [
+        "Cards and major surfaces use md radius.",
+        "Sidebar search inputs and simple inputs use sm radius.",
+        "Chips, pills, and badges use pill radius.",
+        "Charts can be embedded inside cards without additional radius; rely on the card container."
+      ]
+    },
+    "shadows": {
+      "description": "Shadows are subtle and primarily used to separate cards from the light page background.",
+      "tokens": {
+        "none": "none",
+        "card": "0 10px 25px rgba(15, 23, 42, 0.04)",
+        "popover": "0 18px 40px rgba(15, 23, 42, 0.10)",
+        "focusRaised": "0 0 0 1px rgba(37, 99, 235, 0.65), 0 10px 25px rgba(15, 23, 42, 0.08)"
+      },
+      "usageGuidelines": [
+        "Use the card shadow for all main information cards against the page background.",
+        "Use none for nested elements within a card to avoid visual noise.",
+        "Use popover shadow for floating panels like menus or date pickers.",
+        "Use focusRaised sparingly for key interactive surfaces when they are actively focused."
+      ]
+    },
+    "borders": {
+      "description": "Borders are thin and soft, primarily used as separators and subtle framing, not heavy outlines.",
+      "tokens": {
+        "width-default": 1,
+        "style-default": "solid",
+        "color-subtle": "border.subtle",
+        "color-divider": "border.divider"
+      },
+      "usageGuidelines": [
+        "Use 1px subtle borders around cards only when needed for definition; otherwise rely on shadow and background contrast.",
+        "Use divider color for separators inside cards and tables.",
+        "Avoid strong borders around the sidebar; blend it gently with the page background."
+      ]
+    }
+  },
+  "layout": {
+    "description": "High-level page and grid structure guidelines for dashboard-style screens.",
+    "page": {
+      "background": "colors.background.page",
+      "contentMaxWidth": 1440,
+      "outerPaddingX": "spacing.3xl",
+      "outerPaddingY": "spacing.3xl",
+      "gapBetweenSidebarAndContent": "spacing.xl",
+      "rules": [
+        "Keep content centered with comfortable outer padding on large screens.",
+        "Ensure a clear visual gutter between the sidebar and main content.",
+        "Avoid full-bleed cards; they should float on the page background."
+      ]
+    },
+    "sidebar": {
+      "width": 260,
+      "background": "colors.background.sidebar",
+      "padding": {
+        "x": "spacing.xl",
+        "y": "spacing.3xl"
+      },
+      "itemGap": "spacing.lg",
+      "sectionGap": "spacing.2xl",
+      "rules": [
+        "Logo row at the top, followed by search, primary navigation, secondary navigation, and account/utility links towards the bottom.",
+        "Navigation items are left-aligned, icon + label, with clear active and hover states.",
+        "Avoid dense sidebar content; keep labels concise and use icons for quick recognition."
+      ]
+    },
+    "grid": {
+      "columns": 12,
+      "columnGap": 24,
+      "rowGap": 24,
+      "rules": [
+        "Top summary metrics typically span equal-width columns across the page (e.g., 3 or 4 cards).",
+        "Main content area can be split into 7/5 or 8/4 column layouts for charts and supporting modules.",
+        "Align card titles and content blocks to the same vertical rhythm to reduce visual noise."
+      ]
+    },
+    "sections": {
+      "pageHeader": {
+        "description": "Top row containing breadcrumb or app name on the left and context/user actions on the right.",
+        "components": [
+          "AppTitle",
+          "PageTitle",
+          "PageSubtitle",
+          "UserAvatar"
+        ]
+      },
+      "summaryRow": {
+        "description": "Row of concise summary cards for key KPIs such as products tracked, dynamic price updates, competitor signals.",
+        "preferredCardCount": 3
+      },
+      "mainContent": {
+        "description": "Primary 2-column layout with a large chart or gauge on the left and supporting metrics on the right.",
+        "leftRightSplit": "7/5 or 8/4 grid columns"
+      },
+      "lowerModules": {
+        "description": "Additional cards and list-like modules stacked below the main content, aligned to the main grid.",
+        "examples": [
+          "Market Coverage",
+          "Pricing Compliance & Rule Execution",
+          "Demand-Based Pricing Model"
+        ]
+      }
+    }
+  },
+  "components": {
+    "AppShell": {
+      "role": "Overall frame containing sidebar, header, and main content area.",
+      "structure": [
+        "Left sidebar with app logo and main navigation.",
+        "Main area with top header (page title, avatar) and scrollable content."
+      ],
+      "tokens": {
+        "background": "colors.background.page",
+        "fontFamily": "foundations.typography.fontFamilies.primary"
+      },
+      "do": [
+        "Keep the shell minimal so that content cards stand out.",
+        "Maintain consistent page padding and spacing between major sections."
+      ],
+      "dont": [
+        "Do not add heavy borders or strong colored backgrounds around the entire shell.",
+        "Do not reduce padding to the point where cards touch the viewport edges."
+      ]
+    },
+    "Sidebar": {
+      "role": "Primary navigation and app identity.",
+      "states": [
+        "default",
+        "item-hover",
+        "item-active"
+      ],
+      "tokens": {
+        "background": "colors.background.sidebar",
+        "textColor": "colors.text.secondary",
+        "activeBackground": "colors.brand.primary-soft",
+        "activeTextColor": "colors.brand.primary",
+        "hoverBackground": "rgba(148, 163, 184, 0.08)",
+        "itemRadius": "foundations.radius.md"
+      },
+      "elements": {
+        "LogoRow": "App logo icon on the left, name in title-sm typography.",
+        "SearchField": "Compact input with leading search icon, subtle background, and no hard border.",
+        "NavGroupLabel": "Text styled with label typography and muted color.",
+        "NavItem": "Row with icon + label, medium padding and pill-shaped hover/active state.",
+        "Badge": "Small circular count indicator on the right of certain nav items."
+      }
+    },
+    "NavItem": {
+      "role": "Clickable navigation row inside the sidebar.",
+      "states": [
+        "default",
+        "hover",
+        "active"
+      ],
+      "layout": {
+        "paddingX": "spacing.lg",
+        "paddingY": "spacing.sm",
+        "gap": "spacing.md",
+        "radius": "radius.md"
+      },
+      "tokens": {
+        "defaultText": "colors.text.secondary",
+        "defaultIcon": "colors.text.muted",
+        "activeBackground": "colors.brand.primary-soft",
+        "activeText": "colors.brand.primary",
+        "hoverBackground": "rgba(148, 163, 184, 0.08)"
+      },
+      "rules": [
+        "Use concise labels and meaningful icons.",
+        "Align icon and text vertically centered.",
+        "Use a subtle dot or count badge for items with alerts or activity."
+      ]
+    },
+    "TopBar": {
+      "role": "Page-level header within the main content area.",
+      "layout": {
+        "paddingBottom": "spacing.xl",
+        "align": "space-between"
+      },
+      "elements": {
+        "PageTitle": "display-lg typography, primary text color.",
+        "PageSubtitle": "body-sm typography, muted color below the main title.",
+        "ContextLabel": "Small label such as product area name in label typography.",
+        "UserAvatar": "Circular avatar on the far right."
+      }
+    },
+    "Card": {
+      "role": "Generic container for dashboard content.",
+      "variants": [
+        "default",
+        "bordered",
+        "compact"
+      ],
+      "tokens": {
+        "background": "colors.background.surface",
+        "radius": "radius.md",
+        "shadow": "shadows.card",
+        "padding": "spacing.xl",
+        "borderColor": "colors.border.subtle"
+      },
+      "rules": [
+        "Use Card as the base building block for all dashboard modules.",
+        "Do not mix multiple card styles in the same row; keep them visually consistent.",
+        "Allow card height to grow with content but avoid extreme height differences within the same row."
+      ]
+    },
+    "SummaryCard": {
+      "role": "Small card summarizing a single KPI with a sparkline and delta.",
+      "basedOn": "Card",
+      "layout": {
+        "orientation": "vertical",
+        "gap": "spacing.md"
+      },
+      "elements": {
+        "Label": "Short description of the metric using label or body-sm typography.",
+        "PrimaryValue": "KPIValue style for the main number.",
+        "Delta": "DeltaLabel style showing percentage change and direction.",
+        "Sparkline": "Small, unobtrusive line chart aligned to the right or bottom."
+      },
+      "rules": [
+        "Keep the content minimal and focused on a single metric.",
+        "Use semantic colors in the delta label to indicate performance direction.",
+        "Avoid large icons or images; this card should feel light and analytical."
+      ]
+    },
+    "GaugeCard": {
+      "role": "Large card containing a radial gauge for demand or health metrics.",
+      "basedOn": "Card",
+      "elements": {
+        "Title": "title-lg typography at the top-left.",
+        "Subtitle": "body-sm muted text below the title.",
+        "Gauge": "Radial gauge arc with colored segments (green, orange, red) and central percentage label.",
+        "Legend": "Row of color-coded labels explaining each segment.",
+        "Description": "Short explanatory text about what the gauge measures."
+      },
+      "tokens": {
+        "gaugeBackground": "colors.charts.gauge-neutral",
+        "gaugeSegmentPositive": "colors.state.success",
+        "gaugeSegmentNeutral": "colors.brand.primary",
+        "gaugeSegmentWarning": "colors.state.warning",
+        "gaugeSegmentDanger": "colors.state.danger"
+      }
+    },
+    "BarChartCard": {
+      "role": "Card containing a vertical bar chart, typically representing revenue over months.",
+      "basedOn": "Card",
+      "elements": {
+        "Title": "title-lg typography.",
+        "Subtitle": "body-sm muted text for explanation.",
+        "ChartArea": "Bars using chart-blue, chart-green, chart-orange, and chart-red.",
+        "AxisLabels": "body-sm or label typography, subtle color.",
+        "Legend": "Optional labeled swatches below or above chart."
+      }
+    },
+    "ListMetricCard": {
+      "role": "Card listing multiple metrics or rules with associated progress or status.",
+      "basedOn": "Card",
+      "elements": {
+        "ItemRow": "Each row contains a title, short description or tags, and a progress or status indicator.",
+        "ProgressBar": "Horizontal bar with rounded ends indicating completion.",
+        "StatusText": "Small text indicating counts or percentage complete.",
+        "IconOrBadge": "Optional icon or execution count indicator to the right."
+      }
+    },
+    "ProgressBar": {
+      "role": "Horizontal indicator of completion or utilization.",
+      "tokens": {
+        "background": "colors.background.surface-subtle",
+        "fill": "colors.brand.primary",
+        "radius": "radius.pill",
+        "height": 6
+      },
+      "rules": [
+        "Use rounded ends and smooth fill.",
+        "Avoid thick or multi-segment bars; keep it minimal and focused.",
+        "Use success or warning colors when representing health or compliance."
+      ]
+    },
+    "SearchField": {
+      "role": "Compact search input inside the sidebar.",
+      "tokens": {
+        "background": "colors.background.surface-subtle",
+        "borderColor": "transparent",
+        "radius": "radius.sm",
+        "textColor": "colors.text.secondary",
+        "placeholderColor": "colors.text.subtle",
+        "iconColor": "colors.text.muted"
+      },
+      "layout": {
+        "paddingX": "spacing.lg",
+        "paddingY": "spacing.sm",
+        "gap": "spacing.sm"
+      }
+    },
+    "FilterChip": {
+      "role": "Pill-shaped control for filters, such as date range selectors.",
+      "states": [
+        "default",
+        "hover",
+        "active"
+      ],
+      "tokens": {
+        "background": "colors.background.surface-subtle",
+        "activeBackground": "colors.brand.primary-soft",
+        "textColor": "colors.text.secondary",
+        "activeTextColor": "colors.brand.primary",
+        "radius": "radius.pill"
+      }
+    },
+    "KPIValue": {
+      "role": "Number-heavy typographic style for important metrics.",
+      "tokens": {
+        "typography": "foundations.typography.scale.kpi",
+        "color": "colors.text.primary"
+      },
+      "rules": [
+        "Keep KPI values on a single line where possible.",
+        "Pair large KPIs with short labels and, when appropriate, a DeltaLabel.",
+        "Use consistent formatting for currencies and separators."
+      ]
+    },
+    "DeltaLabel": {
+      "role": "Small indicator for percentage change vs previous period.",
+      "tokens": {
+        "typography": "foundations.typography.scale.label",
+        "positiveColor": "colors.state.success",
+        "negativeColor": "colors.state.danger",
+        "neutralColor": "colors.brand.primary"
+      },
+      "rules": [
+        "Include an up/down arrow icon when possible.",
+        "Use green for positive movement, red for negative, and neutral blue for flat/other changes.",
+        "Keep this label compact and close to the main KPI it describes."
+      ]
+    },
+    "PillTag": {
+      "role": "Rounded label for metadata, rule names, or small categories.",
+      "tokens": {
+        "background": "colors.background.surface-subtle",
+        "textColor": "colors.text.secondary",
+        "radius": "radius.pill",
+        "paddingX": "spacing.md",
+        "paddingY": "spacing.xs"
+      }
+    },
+    "Avatar": {
+      "role": "Circular avatar for the user in the top-right of the page.",
+      "tokens": {
+        "size": 32,
+        "radius": "radius.pill"
+      }
+    }
+  },
+  "interaction": {
+    "description": "Interaction guidelines that maintain a calm, confident feel with subtle but clear feedback.",
+    "hover": {
+      "cards": "Slight shadow increase and/or soft border-color change; no large color shifts.",
+      "navItems": "Background becomes slightly tinted and text color increases from secondary to primary.",
+      "chips": "Background lightens slightly and border (if any) becomes more pronounced."
+    },
+    "focus": {
+      "style": "Use a 1–2px outline or ring in primary blue with subtle outer glow.",
+      "rules": [
+        "Focus should always be visible for keyboard users.",
+        "Avoid using only color changes for focus; include outline or shadow differences."
+      ]
+    },
+    "active": {
+      "cards": "Typically no distinct active state; rely on hovered/selected styling where relevant.",
+      "navItems": "Use the active background and text colors defined in the Sidebar/NavItem tokens.",
+      "chips": "Increase contrast via stronger background tint and text color."
+    },
+    "disabled": {
+      "style": "Reduce opacity, remove shadows, and disable hover/focus elevation.",
+      "rules": [
+        "Disabled text should remain legible but clearly de-emphasized.",
+        "Do not rely solely on color to indicate disabled state; pair with cursor and interaction behavior."
+      ]
+    },
+    "motion": {
+      "description": "Animations are subtle and fast, reinforcing responsiveness without drawing undue attention.",
+      "tokens": {
+        "duration-fast": 120,
+        "duration-default": 180,
+        "duration-slow": 240,
+        "easing-standard": "cubic-bezier(0.16, 1, 0.3, 1)"
+      },
+      "usageGuidelines": [
+        "Apply transitions to opacity, transform (e.g., slight translateY for hover), and shadow.",
+        "Avoid large or bouncy animations that might distract from the data.",
+        "For charts, animate values and bars in quickly with easing-standard when data first loads."
+      ]
+    }
+  },
+  "principles": {
+    "description": "High-level creative direction and design principles that should guide all decisions when extending this system.",
+    "statements": [
+      "Clarity over decoration: Every visual element must serve comprehension of data or navigation, not decoration.",
+      "Calm density: The interface can show many metrics at once, but uses generous whitespace, consistent spacing, and clear hierarchy to avoid feeling crowded.",
+      "Soft, neutral, professional: Use cool greys and a restrained blue as the main accent; reserve green, red, and orange for semantic meanings like performance or risk.",
+      "Consistency first: Reuse card structures, spacing, and typography scales across the app instead of inventing new patterns.",
+      "Hierarchy through typography and layout: Emphasize important information with size, weight, and placement rather than bright colors or heavy borders.",
+      "Semantic color usage: Blue is primary and neutral, green indicates success, red signals risk or negative change, and orange captures warnings or mixed performance.",
+      "Minimal chrome: Navigation and shell elements are understated so the data modules and cards take visual priority.",
+      "Friendly but serious: Rounded corners and soft shadows keep the product approachable, but overall composition remains disciplined and business-focused."
+    ]
+  }
+}
+

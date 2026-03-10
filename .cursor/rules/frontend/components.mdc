@@ -133,3 +133,7 @@ Example:
 /composables/useForm.ts
 
 Components should focus primarily on **UI rendering**.
+
+The styling should not be overridable by the importer of the component. Any new requirement of customisation should be provided at the lower level component. e.g if a button is needed in 3 sizes, then the props from the parent can be props.size: 'base' | 'small' | 'large' | 'xlarge'. the parent should not pass explicit padding and margin styles to change the size of the button. this is to avoid the importer specifying different styles at different places in the app leading to inconsistent visual everywhere.
+
+Whenever a button needs to show the loading state. always use the loading variant instead of manually hardcoding the disabled and loading text.

@@ -11,6 +11,10 @@ All styling must use **design tokens defined in the Tailwind config**.
 
 Never hardcode colors, spacing, or typography.
 
+Always optimise for a delightful user experience. e.g when a button is clicked and there is some async work going on, we can show the loading animation inside the button without any layout shifts.
+
+ALWAYS first check if a component is available in the components folder. if it does, import that. if it doesnt, then create a new component.
+
 ---
 
 ## Forbidden Styling
@@ -40,10 +44,6 @@ text-primary
 text-muted
 border-default
 
-Example:
-
-<Button class="bg-primary text-on-primary">
-
 ---
 
 ## Global Theme Source
@@ -67,25 +67,9 @@ theme: {
 
 Components must reference these tokens.
 
----
-
-## Component Theming Rule
-
-All reusable components must derive styling from theme tokens.
-
-Example Button:
-
-<button class="bg-primary text-white px-4 py-2 rounded-md">
-  <slot />
-</button>
-
-Never hardcode arbitrary colors.
-
----
-
 ## Dark Mode Policy
 
-Dark mode is **not supported at this time**.
+VERY IMPORTANT: Dark mode is **not supported at this time**.
 
 Do not implement dark-mode classes or logic in components.
 
@@ -137,3 +121,5 @@ Ensure the entire application maintains:
 - visual consistency
 - centralized theming
 - maintainable design tokens
+
+Always consult `/design.json` before generating any UI styles.

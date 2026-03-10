@@ -1,0 +1,413 @@
+---
+description: "NestJS + Prisma backend architecture, patterns, and code style for the /backend folder."
+globs: backend/**
+alwaysApply: false
+---
+
+# Backend Architecture & Code Rules (NestJS + Prisma)
+
+These rules define how to build and extend the **NestJS + Prisma** backend in `backend/**`
+so that human developers and AI agents produce **consistent, maintainable code**.
+
+The backend is:
+
+- **Language**: TypeScript
+- **Framework**: NestJS 11
+- **ORM / DB**: Prisma + PostgreSQL
+- **Location**: `backend/`
+
+Always follow these rules when creating or modifying backend code.
+
+---
+
+## 1. Stack Summary & Mental Model
+
+- **NestJS application**
+  - Entry point: `backend/src/main.ts`
+  - Root module: `backend/src/app.module.ts`
+  - Uses `ConfigModule.forRoot({ isGlobal: true })` for configuration.
+  - Enables CORS with `origin: true`, `credentials: true`.
+- **Feature modules**
+  - Example module: `backend/src/test/test.module.ts`
+  - Each module groups: `*.controller.ts` + `*.service.ts` (+ optional extra providers).
+- **Prisma + PostgreSQL**
+  - Schema: `backend/prisma/schema.prisma`
+  - Models are defined in the Prisma schema (e.g. `DummyItem`).
+  - DB URL comes from `DATABASE_URL` env var.
+  - Nest integration via `backend/src/prisma.service.ts` which wraps `PrismaClient`.
+- **Containerization**
+  - `backend/Dockerfile` builds the Nest app, runs `prisma generate` and `prisma db push`,
+    then starts the server with `node dist/main.js`.
+
+Think of each **feature** as a Nest module with:
+
+- A controller handling **HTTP contract**.
+- A service implementing **business logic**.
+- (Optionally) Prisma-based data access via `PrismaService`.
+
+### 1.1 High-Level Request Flow
+
+```mermaid
+flowchart LR
+  client[Client] --> http[HTTP Request]
+  http --> controller[Controller]
+  controller --> service[Service]
+  service --> prismaService[PrismaService]
+  prismaService --> db[PostgreSQL]
+```
+
+---
+
+## 2. Module / Controller / Service / Prisma Layering
+
+### 2.1 Feature Module Structure
+
+- **All new backend features must be implemented as Nest feature modules** under:
+  - `backend/src/<feature>/`
+- A typical feature module contains at least:
+  - `<feature>.module.ts`
+  - `<feature>.controller.ts`
+  - `<feature>.service.ts`
+- Follow the pattern of the existing `TestModule`:
+  - `backend/src/test/test.module.ts`
+  - `backend/src/test/test.controller.ts`
+  - `backend/src/test/test.service.ts`
+
+**Naming conventions:**
+
+- Module classes: `<Feature>Module` in `<feature>.module.ts`
+- Controller classes: `<Feature>Controller` in `<feature>.controller.ts`
+- Service classes: `<Feature>Service` in `<feature>.service.ts`
+
+### 2.2 Controller Responsibilities
+
+Controllers are responsible **only** for the HTTP layer:
+
+- Define routes and HTTP methods using Nest decorators:
+  - `@Controller('api/<feature>')`
+  - `@Get()`, `@Post()`, `@Patch()`, `@Delete()`, etc.
+- Accept and validate parameters/body (possibly via DTOs and pipes).
+- Map **request → service call → response**.
+- Set appropriate status codes and basic HTTP concerns.
+
+**Controllers must NOT:**
+
+- Contain complex business logic.
+- Access the database directly (no `PrismaClient` usage in controllers).
+- Instantiate or manage low-level infrastructure (DB clients, HTTP clients, etc.).
+
+Always delegate to the corresponding service:
+
+- Good:
+  - `return this.itemsService.listItems(query);`
+- Bad:
+  - Directly calling `prisma.client.*` in controller.
+  - Performing complex calculations or multi-step workflows in controller methods.
+
+### 2.3 Service Responsibilities
+
+Services encapsulate **business logic and data orchestration**:
+
+- All non-trivial logic must live in services, not controllers.
+- Services may depend on:
+  - `PrismaService` for database access.
+  - Other services or providers as needed.
+- Services should expose **intention-revealing methods**:
+  - `createItem`, `updateProfile`, `getUserByEmail`, etc.
+
+Services are `@Injectable()` classes using constructor injection:
+
+- Example (pattern, do not copy names blindly):
+
+```ts
+@Injectable()
+export class ItemsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async listItems() {
+    return this.prisma.client.item.findMany();
+  }
+}
+```
+
+### 2.4 PrismaService & Data Access
+
+Prisma integration is centralized in `PrismaService`:
+
+- File: `backend/src/prisma.service.ts`
+- Wraps a single `PrismaClient` instance (`readonly client = new PrismaClient()`).
+- Handles clean shutdown via `OnModuleDestroy`.
+
+**Rules:**
+
+- Always inject `PrismaService` into services via the constructor.
+- Never instantiate `PrismaClient` directly in controllers, services, or other providers.
+- All database access must go through `this.prisma.client.<model>...`.
+- If data access patterns become complex, consider extracting helper methods
+  or repository-like classes that still use `PrismaService` under the hood.
+
+**Schema ownership:**
+
+- All database models must be defined in `backend/prisma/schema.prisma`.
+- Do not rely on ad-hoc SQL by default.
+- Raw SQL (via `prisma.$queryRaw` etc.) is allowed only when absolutely necessary and
+  should be wrapped in clearly named service methods with comments explaining why.
+
+---
+
+## 3. Code Style, Formatting, and Linting
+
+The backend relies on **Prettier + ESLint + TypeScript** as seen in `backend/package.json`.
+
+### 3.1 Formatting (Prettier)
+
+- Use the `npm run format` script for automated formatting:
+  - `prettier --write "src/**/*.ts" "test/**/*.ts"`.
+- AI-generated code must already be close to Prettier defaults:
+  - 2-space indentation.
+  - Semicolons where Prettier expects them.
+  - Consistent use of single quotes for strings (as used in existing files).
+  - Trailing commas where allowed.
+
+Never hand-format code in a way that fights Prettier; rely on tooling.
+
+### 3.2 Linting (ESLint)
+
+- Use the `npm run lint` script:
+  - `eslint "{src,apps,libs,test}/**/*.ts" --fix`.
+- Generated code must respect typical TypeScript/Nest linting rules:
+  - No unused variables or imports.
+  - No `any` unless absolutely unavoidable and explicitly justified.
+  - Prefer `const` over `let` when possible.
+  - Avoid magic strings/numbers in logic-heavy areas.
+
+### 3.3 TypeScript Style
+
+- Always use **strong typing**:
+  - Explicit types for DTOs, parameters, and return values of public methods.
+  - Avoid `any` and loose `object` types.
+- Use `async/await` over `.then()` chains for readability.
+- Keep imports organized:
+  - Nest core imports (`@nestjs/...`) first.
+  - Third-party imports (e.g. `@prisma/client`, `rxjs`).
+  - Local imports (`./foo`, `../bar`).
+
+---
+
+## 4. API Design & Error Handling
+
+### 4.1 Route Design & Prefixes
+
+- Prefer route prefixes starting with `/api/...`:
+  - Example: `@Controller('api/test')` (see `TestController`).
+- For new modules, use descriptive resource names:
+  - `@Controller('api/items')`
+  - `@Controller('api/users')`
+
+**Versioning (future-friendly):**
+
+- If API versioning is introduced, structure routes as:
+  - `@Controller('api/v1/items')`
+- AI-generated modules should be prepared to adopt versioned prefixes consistently
+  if the project moves in that direction.
+
+### 4.2 Request / Response Contracts
+
+- Prefer **DTOs** (classes or interfaces) to describe:
+  - Request bodies.
+  - Query parameters.
+  - Response shapes (if not trivial).
+- Controllers should not return ORM entities directly for real-world features:
+  - Instead, map Prisma models to DTOs that expose only required fields.
+- Responses must be predictable JSON objects, avoiding:
+  - Leaking internal fields (passwords, secrets, internal IDs if not needed).
+  - Returning non-serializable values.
+
+### 4.3 Error Handling
+
+- Use Nest HTTP exceptions for known error conditions:
+  - `BadRequestException`, `UnauthorizedException`, `ForbiddenException`,
+    `NotFoundException`, `ConflictException`, etc.
+- Do NOT:
+  - `throw new Error('...')` for HTTP-specific issues.
+  - Swallow errors silently.
+- When catching errors:
+  - Either convert to an appropriate HTTP exception, or
+  - Log and rethrow so Nest’s global handling can respond correctly.
+
+Example pattern:
+
+```ts
+try {
+  const item = await this.itemsService.getItemById(id);
+  if (!item) {
+    throw new NotFoundException('Item not found');
+  }
+  return item;
+} catch (error) {
+  // Optionally log error here
+  throw error;
+}
+```
+
+---
+
+## 5. Configuration, Environment, and Startup
+
+### 5.1 Configuration Access
+
+- `ConfigModule.forRoot({ isGlobal: true })` is configured in `AppModule`.
+- When reading configuration:
+  - Prefer using Nest configuration patterns (e.g. `ConfigService`) instead of
+    scattering `process.env.*` access throughout services.
+  - Keep environment key names centralized and documented.
+
+### 5.2 Environment Variables
+
+- Database:
+  - `DATABASE_URL` is used by Prisma in `backend/prisma/schema.prisma`.
+  - AI-generated code must assume this is correctly set; do not hardcode DB URLs.
+- Port:
+  - `process.env.PORT ?? 3000` is used in `backend/src/main.ts`.
+  - Do not change this pattern unless there is a specific requirement.
+
+### 5.3 Startup & Prisma Migrations
+
+- The Docker startup sequence (simplified):
+  - `npx prisma generate`
+  - `npx prisma db push --schema=./prisma/schema.prisma`
+  - `node dist/main.js`
+- **Rules for AI:**
+  - Do not introduce an alternative migration mechanism that conflicts with `prisma db push`.
+  - When adding new models or fields, update `schema.prisma` and rely on existing scripts.
+  - Keep seeding logic in dedicated scripts (e.g. `prisma-seed.ts` compiled to `dist/prisma-seed.js`).
+
+---
+
+## 6. Testing Patterns
+
+- Testing is configured via Jest in `backend/package.json`:
+  - Tests live under `src` and match `*.spec.ts`.
+  - The root directory for tests is `src`, with coverage output under `coverage/`.
+
+**Expectations for new code:**
+
+- For new services with non-trivial business logic:
+  - Add unit tests using Nest’s `TestingModule` utilities where appropriate.
+- For controllers:
+  - Add tests for important HTTP behaviors (status codes, error paths) as needed.
+- Keep tests focused and fast:
+  - Prefer unit tests that mock dependencies over heavy integration tests unless justified.
+
+---
+
+## 7. AI Guidance: How to Add a New Feature
+
+When generating new backend functionality, follow this checklist:
+
+1. **Create a feature module folder**
+   - Path: `backend/src/<feature>/`
+2. **Create a module file** `<feature>.module.ts`
+   - Define `<Feature>Module` with:
+     - `controllers: [<Feature>Controller]`
+     - `providers: [<Feature>Service, PrismaService]` (and any additional providers).
+3. **Create a controller** `<feature>.controller.ts`
+   - `@Controller('api/<feature>')`
+   - Inject `<Feature>Service` via constructor.
+   - Define HTTP routes (`@Get`, `@Post`, etc.) that delegate to the service.
+4. **Create a service** `<feature>.service.ts`
+   - `@Injectable()` class.
+   - Inject `PrismaService` via constructor for DB access.
+   - Implement clear, intention-revealing methods for business logic.
+5. **Add Prisma schema changes if needed**
+   - Update `backend/prisma/schema.prisma` with new models or fields.
+   - Ensure code uses `this.prisma.client.<model>...` with the new schema.
+6. **Wire into the application**
+   - Import the new `<FeatureModule>` into `AppModule` (or another parent module) as needed.
+7. **Add tests**
+   - Create `*.spec.ts` files for services and, when valuable, controllers.
+8. **Run tooling**
+   - Run `npm run format` and `npm run lint` in `backend`.
+   - Ensure tests pass (`npm test` or related scripts).
+
+Always mirror patterns used in the existing `TestModule` when in doubt.
+
+---
+
+## 8. Example Feature Module (Pattern)
+
+This is a **pattern example** to clarify structure. Adjust naming and fields to match
+real use cases and the actual Prisma schema.
+
+### 8.1 Module
+
+```ts
+// backend/src/items/items.module.ts
+import { Module } from '@nestjs/common';
+import { PrismaService } from '../prisma.service';
+import { ItemsController } from './items.controller';
+import { ItemsService } from './items.service';
+
+@Module({
+  controllers: [ItemsController],
+  providers: [ItemsService, PrismaService],
+})
+export class ItemsModule {}
+```
+
+### 8.2 Service
+
+```ts
+// backend/src/items/items.service.ts
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma.service';
+
+@Injectable()
+export class ItemsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async listItems() {
+    return this.prisma.client.item.findMany();
+  }
+}
+```
+
+### 8.3 Controller
+
+```ts
+// backend/src/items/items.controller.ts
+import { Controller, Get } from '@nestjs/common';
+import { ItemsService } from './items.service';
+
+@Controller('api/items')
+export class ItemsController {
+  constructor(private readonly itemsService: ItemsService) {}
+
+  @Get()
+  async list() {
+    return this.itemsService.listItems();
+  }
+}
+```
+
+When implementing real features, keep files small and focused. If a module or
+service grows too large, consider splitting concerns into additional services
+or providers while preserving the overall NestJS layering.
+
+---
+
+## 9. Consistency & Extensibility
+
+- New backend code must **extend** existing patterns, not invent parallel architectures.
+- Prefer reusing:
+  - Existing configuration mechanisms (`ConfigModule`, env vars).
+  - Existing database access pattern via `PrismaService`.
+  - Established Nest module/controller/service structure.
+- Avoid one-off shortcuts:
+  - No ad-hoc HTTP servers.
+  - No direct Prisma clients outside `PrismaService`.
+  - No inline “script-like” logic inside controllers.
+
+If in doubt, **copy the structure of the existing `test` feature module** and adapt it
+to the new domain.
+
