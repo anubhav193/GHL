@@ -12,12 +12,12 @@ import { JwtStrategy } from './jwt.strategy';
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const expiresIn = configService.get<string>('JWT_EXPIRES_IN') ?? '7d';
-
         return {
           secret: configService.get<string>('JWT_SECRET'),
           signOptions: {
-            expiresIn,
+            // Cast to any to satisfy the stricter JwtModuleOptions typing while still
+            // allowing standard string-based durations like "7d".
+            expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ?? '7d') as any,
           },
         };
       },

@@ -20,7 +20,6 @@ interface AuthenticatedRequest extends Request {
     userId: number;
     email?: string;
   };
-  cookies?: Record<string, string>;
 }
 
 @Controller('auth')
