@@ -6,6 +6,8 @@ Minimal agent studio that lets a user:
 
 The repo is split into a `frontend` (Vue 3 + Vite) and a `backend` (NestJS + Prisma + Postgres).
 
+Demo video: https://www.dropbox.com/scl/fi/p7giuyrdk5hynopwi411x/Demo.mp4?rlkey=8r1xztpu9l1p7vq1r4kozwlsj&dl=0
+
 ### System architecture
 
 ```mermaid
