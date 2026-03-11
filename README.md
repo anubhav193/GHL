@@ -163,3 +163,26 @@ This codebase is intentionally small and monolithic; below is how it would evolv
 - **Service decomposition & observability**
   - Gradually split the monolith into services (auth, chat/LLM orchestration, integrations, UI backend) once complexity or scale requires it.
   - Add centralized logging, tracing, and metrics (e.g. OpenTelemetry) for debugging latency, failures, and provider spend.
+
+### Environment variable files before you run docker-compose
+```
+# .env
+POSTGRES_USER=app
+POSTGRES_PASSWORD=app
+POSTGRES_DB=app_db
+```
+
+```
+# ./backend/.env
+DATABASE_URL="postgresql://app:app@localhost:5432/app_db?schema=public"
+JWT_SECRET="super-secret-change-me"
+FRONTEND_ORIGIN="http://localhost:5173"
+NANGO_SECRET_KEY="4adf3e1f-2083-4b04-8378-35f1be2783d8" # this key will be revoked in a few days
+NANGO_HOST="https://api.nango.dev"
+OPENAI_API_KEY="sk-proj-RWB-api-key"
+```
+
+```
+# ./frontend/.env
+VITE_API_BASE_URL=http://localhost:3000
+```
