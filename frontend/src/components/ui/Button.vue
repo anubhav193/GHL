@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 
-type ButtonVariant = 'primary' | 'secondary' | 'subtle' | 'danger' | 'link';
+type ButtonVariant = 'primary' | 'secondary' | 'subtle' | 'danger' | 'link' | 'icon';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface Props {
@@ -35,7 +35,7 @@ const emit = defineEmits<{
 
 const classes = computed(() => {
   const base =
-    'inline-flex items-center justify-center rounded-md font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-page disabled:pointer-events-none disabled:opacity-60 disabled:cursor-default';
+    'inline-flex items-center justify-center font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-page disabled:pointer-events-none disabled:opacity-60 disabled:cursor-default';
 
   const sizeClasses: Record<ButtonSize, string> = {
     sm: 'h-8 px-3 text-xs',
@@ -45,22 +45,31 @@ const classes = computed(() => {
 
   const variantClasses: Record<ButtonVariant, string> = {
     primary:
-      'bg-primary text-text-on-primary shadow-card hover:bg-primary-strong/95',
+      'rounded-md bg-primary text-text-on-primary shadow-card hover:bg-primary-strong/95',
     secondary:
-      'bg-bg-surface text-text-secondary border border-border-subtle hover:bg-bg-surface-subtle',
+      'rounded-md bg-bg-surface text-text-secondary border border-border-subtle hover:bg-bg-surface-subtle',
     subtle:
-      'bg-transparent text-text-secondary hover:bg-bg-surface-subtle border border-transparent',
+      'rounded-md bg-transparent text-text-secondary hover:bg-bg-surface-subtle border border-transparent',
     danger:
-      'bg-danger text-text-on-primary shadow-card hover:bg-danger/90',
+      'rounded-md bg-danger text-text-on-primary shadow-card hover:bg-danger/90',
     link:
       'bg-transparent text-primary hover:text-primary-strong underline-offset-2 hover:underline rounded-none px-0 h-auto',
+    icon:
+      'bg-primary text-text-on-primary shadow-card hover:bg-primary-strong/95',
   };
 
   const width = props.fullWidth && props.variant !== 'link' ? 'w-full' : 'w-auto';
   const sizeClass =
-    props.variant === 'link' ? undefined : sizeClasses[props.size];
+    props.variant === 'link' || props.variant === 'icon'
+      ? undefined
+      : sizeClasses[props.size];
 
-  return [base, sizeClass, variantClasses[props.variant], width]
+  const iconExtras =
+    props.variant === 'icon'
+      ? 'rounded-full h-10 w-10 aspect-square p-0 text-lg leading-none'
+      : undefined;
+
+  return [base, sizeClass, variantClasses[props.variant], width, iconExtras]
     .filter(Boolean)
     .join(' ');
 });
@@ -74,6 +83,7 @@ const spinnerClasses = computed(() => {
     subtle: 'text-primary border-t-current',
     danger: 'text-text-on-primary border-t-current',
     link: 'text-primary border-t-current',
+    icon: 'text-text-on-primary border-t-current',
   };
 
   return [base, byVariant[props.variant]].join(' ');

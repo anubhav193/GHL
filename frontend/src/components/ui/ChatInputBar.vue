@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { ref, nextTick, watch, onMounted } from 'vue';
+import Button from '@/components/ui/Button.vue';
+
 interface Props {
   modelValue: string;
   placeholder?: string;
@@ -15,9 +18,32 @@ const emit = defineEmits<{
   (e: 'submit'): void;
 }>();
 
+const textareaRef = ref<HTMLTextAreaElement | null>(null);
+
+function adjustHeight() {
+  const el = textareaRef.value;
+  if (!el) return;
+  el.style.height = '39px';
+  el.style.height = `${Math.min(100, Math.max(39, el.scrollHeight))}px`;
+}
+
+// Keep textarea height in sync when the bound value changes from the parent
+// (e.g. cleared after submit).
+watch(
+  () => props.modelValue,
+  () => {
+    nextTick(adjustHeight);
+  },
+);
+
+onMounted(() => {
+  nextTick(adjustHeight);
+});
+
 const onInput = (event: Event) => {
   const target = event.target as HTMLTextAreaElement;
   emit('update:modelValue', target.value);
+  nextTick(adjustHeight);
 };
 
 const onKeydown = (event: KeyboardEvent) => {
@@ -33,7 +59,8 @@ const onKeydown = (event: KeyboardEvent) => {
     class="flex items-end gap-3 rounded-xl border border-border-subtle bg-bg-surface px-3 py-2 shadow-card"
   >
     <textarea
-      class="max-h-32 flex-1 resize-none border-none bg-transparent px-1 py-2 text-sm text-text-primary outline-none placeholder:text-text-subtle"
+      ref="textareaRef"
+      class="min-h-[39px] max-h-[100px] flex-1 resize-none border-none bg-transparent px-1 py-2 text-sm text-text-primary outline-none placeholder:text-text-subtle"
       :placeholder="placeholder"
       :disabled="disabled"
       :value="modelValue"
@@ -43,15 +70,14 @@ const onKeydown = (event: KeyboardEvent) => {
     />
     <div class="flex items-center gap-1">
       <slot name="secondary" />
-      <button
+      <Button
+        variant="icon"
         type="button"
-        class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-text-on-primary shadow-card disabled:opacity-60 disabled:pointer-events-none"
         :disabled="disabled || !modelValue"
         @click="emit('submit')"
       >
-        <span class="sr-only">Send</span>
-        <span class="text-lg leading-none">&#10148;</span>
-      </button>
+        &#10148;
+      </Button>
     </div>
   </div>
 </template>

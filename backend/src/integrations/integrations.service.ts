@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 import { NangoService } from '../nango/nango.service';
 import { INTEGRATION_ACTIONS_BY_UNIQUE_KEY } from './integrations.actions.config';
@@ -10,6 +11,7 @@ export interface IntegrationListItem {
   provider: string;
   logoUrl: string | null;
   actionsEnabled: number;
+  agentsUsingCount: number;
   status: 'connected' | 'disconnected';
   connectionId: string | null;
 }
@@ -38,10 +40,15 @@ export class IntegrationsService implements OnModuleInit {
         `Fetched ${configs.length} integration config(s) from Nango during startup sync.`,
       );
 
-      const actionsByUniqueKey = new Map<
-        string,
-        { actionKey: string; actionName: string; description?: string }[]
-      >();
+      type ActionConfig = {
+        actionKey: string;
+        actionName: string;
+        description?: string;
+        jsonSchema?: Record<string, unknown> | null;
+        type: 'action' | 'sync';
+      };
+
+      const actionsByUniqueKey = new Map<string, ActionConfig[]>();
 
       for (const cfg of scriptsConfigs) {
         const keys = [cfg.providerConfigKey, cfg.provider].filter(
@@ -53,6 +60,8 @@ export class IntegrationsService implements OnModuleInit {
             actionKey: action.name,
             actionName: action.name,
             description: action.description,
+            jsonSchema: action.json_schema ?? null,
+            type: 'action' as const,
           })) ?? [];
 
         const fromSyncs =
@@ -60,6 +69,8 @@ export class IntegrationsService implements OnModuleInit {
             actionKey: sync.name,
             actionName: sync.name,
             description: sync.description,
+            jsonSchema: sync.json_schema ?? null,
+            type: 'sync' as const,
           })) ?? [];
 
         const entries = [...fromActions, ...fromSyncs];
@@ -96,9 +107,12 @@ export class IntegrationsService implements OnModuleInit {
           },
         });
 
-        const actionConfigs = [
+        const actionConfigs: ActionConfig[] = [
           ...(actionsByUniqueKey.get(uniqueKey) ?? []),
-          ...(INTEGRATION_ACTIONS_BY_UNIQUE_KEY[uniqueKey] ?? []),
+          ...((INTEGRATION_ACTIONS_BY_UNIQUE_KEY[uniqueKey] ?? []).map((cfg) => ({
+            ...cfg,
+            type: cfg.type ?? 'action',
+          })) as ActionConfig[]),
         ];
 
         for (const action of actionConfigs) {
@@ -112,6 +126,8 @@ export class IntegrationsService implements OnModuleInit {
             update: {
               actionName: action.actionName,
               description: action.description,
+              jsonSchema: (action.jsonSchema ?? undefined) as Prisma.InputJsonValue | undefined,
+              type: action.type,
               enabled: true,
             },
             create: {
@@ -119,6 +135,8 @@ export class IntegrationsService implements OnModuleInit {
               actionKey: action.actionKey,
               actionName: action.actionName,
               description: action.description,
+              jsonSchema: (action.jsonSchema ?? undefined) as Prisma.InputJsonValue | undefined,
+              type: action.type,
             },
           });
         }
@@ -151,8 +169,8 @@ export class IntegrationsService implements OnModuleInit {
       await this.refreshConnectionsFromNangoForUser(userId);
     }
 
-    const [integrations, connections, actionsByIntegration] = await Promise.all(
-      [
+    const [integrations, connections, actionsByIntegration, agentToolsByUser] =
+      await Promise.all([
         this.prisma.client.integration.findMany({
           where: { enabled: true },
         }),
@@ -164,12 +182,29 @@ export class IntegrationsService implements OnModuleInit {
           where: { enabled: true },
           _count: { _all: true },
         }),
-      ],
-    );
+        this.prisma.client.agentTool.findMany({
+          where: { agent: { userId } },
+          select: {
+            agentId: true,
+            integrationAction: { select: { integrationId: true } },
+          },
+        }),
+      ]);
 
     const actionsCountMap = new Map<number, number>();
     for (const group of actionsByIntegration) {
       actionsCountMap.set(group.integrationId, group._count._all);
+    }
+
+    const agentsByIntegrationId = new Map<number, Set<number>>();
+    for (const row of agentToolsByUser) {
+      const integrationId = row.integrationAction.integrationId;
+      let set = agentsByIntegrationId.get(integrationId);
+      if (!set) {
+        set = new Set<number>();
+        agentsByIntegrationId.set(integrationId, set);
+      }
+      set.add(row.agentId);
     }
 
     return integrations.map((integration) => {
@@ -179,6 +214,8 @@ export class IntegrationsService implements OnModuleInit {
       );
 
       const actionsEnabled = actionsCountMap.get(integration.id) ?? 0;
+      const agentsUsingCount =
+        agentsByIntegrationId.get(integration.id)?.size ?? 0;
 
       return {
         id: integration.id,
@@ -187,6 +224,7 @@ export class IntegrationsService implements OnModuleInit {
         provider: integration.provider,
         logoUrl: integration.logoUrl,
         actionsEnabled,
+        agentsUsingCount,
         status: activeConnection ? 'connected' : 'disconnected',
         connectionId: activeConnection?.nangoConnectionId ?? null,
       };
@@ -225,6 +263,21 @@ export class IntegrationsService implements OnModuleInit {
     nangoConnectionId: string;
   }) {
     const { userId, integrationId, nangoConnectionId } = params;
+
+    const agentToolsInUse = await this.prisma.client.agentTool.findMany({
+      where: {
+        agent: { userId },
+        integrationAction: { integrationId },
+      },
+      select: { agentId: true },
+    });
+    const distinctAgentIds = new Set(agentToolsInUse.map((t) => t.agentId));
+
+    if (distinctAgentIds.size > 0) {
+      throw new Error(
+        'Cannot disconnect: one or more agents use this integration. Remove it from all agents first.',
+      );
+    }
 
     const existing = await this.prisma.client.integrationConnection.findFirst({
       where: {

@@ -10,6 +10,29 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+table,
+th,
+td,
+tr {
+  text-align: left;
+  padding: 5px;
+}
+
+table {
+  margin: 15px auto;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #E5E7EB;
+}
+
+tr {
+  border-top: 1px solid #E5E7EB;
+}
+
+td:not(:last-child), th:not(:last-child) {
+  border-right: 1px solid #E5E7EB;
+}
+
 /* NProgress thin top bar */
 #nprogress {
   pointer-events: none;

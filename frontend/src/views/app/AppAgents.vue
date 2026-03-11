@@ -166,10 +166,7 @@ onMounted(() => {
 
 <template>
   <section class="space-y-4">
-    <header class="space-y-1">
-      <p class="text-xs uppercase tracking-wide text-text-subtle">
-        App / Agents
-      </p>
+    <header>
       <div class="flex items-start justify-between gap-4">
         <div>
           <h1 class="text-xl font-semibold text-text-primary">

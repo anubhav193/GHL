@@ -267,14 +267,12 @@ const largeTabsValue = ref<'large-1' | 'large-2'>('large-1');
                 </ChatMessageBubble>
                 <ChatMessageBubble
                   role="user"
-                  :show-avatar="true"
                   timestamp="You · 2s ago"
                 >
                   Help me design a pricing experiment for my Pro plan.
                 </ChatMessageBubble>
                 <ChatMessageBubble
                   role="assistant"
-                  :show-avatar="true"
                   timestamp="Agent · 1s ago"
                 >
                   Great. I can suggest a 3-variant test with guardrails on churn and revenue...

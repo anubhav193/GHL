@@ -4,6 +4,12 @@ import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
+  if (!process.env.OPENAI_API_KEY?.trim()) {
+    throw new Error(
+      'OPENAI_API_KEY is required but not set in environment. Set it in backend/.env and restart.',
+    );
+  }
+
   const app = await NestFactory.create(AppModule);
 
   app.useGlobalPipes(

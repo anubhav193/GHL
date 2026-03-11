@@ -15,10 +15,7 @@ const handleLogout = async () => {
 
 <template>
   <section class="space-y-4">
-    <header class="space-y-1">
-      <p class="text-xs uppercase tracking-wide text-text-subtle">
-        App / Settings
-      </p>
+    <header>
       <h1 class="text-xl font-semibold text-text-primary">
         Settings
       </h1>

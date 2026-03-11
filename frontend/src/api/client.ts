@@ -33,6 +33,7 @@ export interface IntegrationListItem {
   provider: string;
   logoUrl: string | null;
   actionsEnabled: number;
+  agentsUsingCount: number;
   status: 'connected' | 'disconnected';
   connectionId: string | null;
 }
@@ -221,6 +222,171 @@ export async function deleteAgent(id: number) {
   });
 
   return handleJsonResponse<{ success: boolean }>(response);
+}
+
+// Chats / conversations
+
+export interface ConversationListItem {
+  id: string;
+  updatedAt: string;
+  title: string;
+}
+
+export interface ChatMessage {
+  id: number;
+  role: 'user' | 'assistant' | 'tool';
+  content: string;
+  toolExecutionId?: number;
+  createdAt: string;
+  toolExecution?: {
+    id: number;
+    toolName: string;
+    inputJson: unknown;
+    outputJson: unknown;
+  };
+}
+
+export interface ConversationWithMessages {
+  id: string;
+  agentIds: number[];
+  updatedAt: string;
+  agents?: { id: number; name: string }[];
+  messages: ChatMessage[];
+}
+
+export type ChatStreamEvent =
+  | { type: 'text'; delta: string }
+  | { type: 'tool_call'; id: string; name: string; args: Record<string, unknown> }
+  | {
+      type: 'tool_result';
+      id: string;
+      name: string;
+      input: unknown;
+      output: unknown;
+    }
+  | { type: 'done' };
+
+export async function getConversations() {
+  const response = await fetch(`${API_BASE_URL}/chats/conversations`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+  return handleJsonResponse<{ conversations: ConversationListItem[] }>(response);
+}
+
+export async function getConversation(id: string) {
+  const response = await fetch(`${API_BASE_URL}/chats/conversations/${id}`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+  return handleJsonResponse<ConversationWithMessages>(response);
+}
+
+export interface ConversationAgents {
+  agentIds: number[];
+  agents: { id: number; name: string }[];
+}
+
+export async function getConversationAgents(id: string) {
+  const response = await fetch(
+    `${API_BASE_URL}/chats/conversations/${id}/agents`,
+    {
+      method: 'GET',
+      credentials: 'include',
+    },
+  );
+  return handleJsonResponse<ConversationAgents>(response);
+}
+
+export async function updateConversationAgents(
+  id: string,
+  agentIds: number[],
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/chats/conversations/${id}/agents`,
+    {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ agentIds }),
+    },
+  );
+  return handleJsonResponse<ConversationAgents>(response);
+}
+
+export async function createConversation() {
+  const response = await fetch(`${API_BASE_URL}/chats/conversations`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  return handleJsonResponse<{ id: string }>(response);
+}
+
+export async function deleteConversation(id: string) {
+  const response = await fetch(`${API_BASE_URL}/chats/conversations/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  return handleJsonResponse<{ success: boolean }>(response);
+}
+
+export async function sendMessageStream(
+  conversationId: string,
+  content: string,
+  onEvent: (event: ChatStreamEvent) => void,
+): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/chats/conversations/${conversationId}/messages`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    },
+  );
+
+  if (!response.ok) {
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType?.includes('application/json');
+    const data = isJson ? await response.json() : null;
+    const msg =
+      data?.message ?? (Array.isArray(data?.message) ? data.message[0] : null) ?? response.statusText;
+    throw new Error(typeof msg === 'string' ? msg : 'Failed to send message');
+  }
+
+  if (!response.body) throw new Error('No response body');
+  const stream = response.body.pipeThrough(new TextDecoderStream());
+  const readStream = stream.getReader();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await readStream.read();
+    if (done) break;
+    buffer += value ?? '';
+    const lines = buffer.split('\n');
+    buffer = lines.pop() ?? '';
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      try {
+        const event = JSON.parse(trimmed) as ChatStreamEvent;
+        onEvent(event);
+      } catch {
+        // skip malformed line
+      }
+    }
+  }
+
+  if (buffer.trim()) {
+    try {
+      const event = JSON.parse(buffer.trim()) as ChatStreamEvent;
+      onEvent(event);
+    } catch {
+      // skip
+    }
+  }
 }
 
 

@@ -19,15 +19,16 @@ model DummyItem {
 }
 
 model User {
-  id           Int                     @id @default(autoincrement())
-  createdAt    DateTime                @default(now())
-  updatedAt    DateTime                @updatedAt
-  firstName    String
-  lastName     String
-  email        String                  @unique
-  passwordHash String
-  connections  IntegrationConnection[]
-  agents       Agent[]
+  id            Int            @id @default(autoincrement())
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  firstName     String
+  lastName      String
+  email         String         @unique
+  passwordHash  String
+  connections   IntegrationConnection[]
+  agents        Agent[]
+  conversations Conversation[]
 }
 
 model Integration {
@@ -52,6 +53,11 @@ model IntegrationAction {
   actionKey    String
   actionName   String?
   description  String?
+  jsonSchema   Json?       // OpenAI tool parameters schema from Nango script config
+  /// "action" for Nango actions, "sync" for Nango syncs.
+  type         String      @default("action")
+  /// For syncs/actions, the primary data model name (e.g. "GmailEmail").
+  dataModel    String?
   enabled      Boolean     @default(true)
   agentTools   AgentTool[]
 
@@ -75,14 +81,56 @@ model IntegrationConnection {
 }
 
 model Agent {
-  id           Int        @id @default(autoincrement())
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  user         User       @relation(fields: [userId], references: [id])
-  userId       Int
-  name         String
-  systemPrompt String
-  tools        AgentTool[]
+  id            Int            @id @default(autoincrement())
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  user          User           @relation(fields: [userId], references: [id])
+  userId        Int
+  name          String
+  systemPrompt  String
+  tools         AgentTool[]
+  conversations ConversationAgent[]
+}
+
+model Conversation {
+  id             String           @id @default(uuid())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  /// Human-friendly title generated from the first user message.
+  title          String?
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         Int
+  messages       Message[]
+  toolExecutions ToolExecution[]
+  agents         ConversationAgent[]
+}
+
+model Message {
+  id                Int            @id @default(autoincrement())
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  conversation      Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId    String
+  role              String         // "user" | "assistant" | "tool"
+  content           String
+  toolCallId        String?        // OpenAI tool_call id, for role "tool"
+  toolCallsJson     Json?          // For role "assistant": tool_calls array for API history
+  toolExecution     ToolExecution? @relation(fields: [toolExecutionId], references: [id], onDelete: SetNull)
+  toolExecutionId   Int?
+}
+
+model ToolExecution {
+  id             Int           @id @default(autoincrement())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  conversation   Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId String
+  toolName       String
+  inputJson      Json
+  outputJson     Json?
+  status         String        // "success" | "failure"
+  statusReason   String?
+  messages       Message[]
 }
 
 model AgentTool {
@@ -95,4 +143,16 @@ model AgentTool {
   integrationActionId Int
 
   @@unique([agentId, integrationActionId])
+}
+
+model ConversationAgent {
+  id             Int           @id @default(autoincrement())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  conversation   Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId String
+  agent          Agent         @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  agentId        Int
+
+  @@unique([conversationId, agentId])
 }

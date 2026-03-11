@@ -46,7 +46,7 @@ const routes = [
     redirect: '/app/chats',
     children: [
       {
-        path: 'chats',
+        path: 'chats/:conversationId?',
         name: 'app-chats',
         component: AppChats,
       },

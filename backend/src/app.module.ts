@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { NangoModule } from './nango/nango.module';
 import { IntegrationsModule } from './integrations/integrations.module';
 import { AgentsModule } from './agents/agents.module';
+import { ChatsModule } from './chats/chats.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AgentsModule } from './agents/agents.module';
     NangoModule,
     IntegrationsModule,
     AgentsModule,
+    ChatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

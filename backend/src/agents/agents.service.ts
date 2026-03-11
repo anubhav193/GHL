@@ -244,13 +244,21 @@ export class AgentsService {
 
     await this.ensureAgentOwnership(agentId, userId);
 
-    await this.prisma.client.agentTool.deleteMany({
-      where: { agentId },
-    });
-
-    await this.prisma.client.agent.delete({
-      where: { id: agentId },
-    });
+    await this.prisma.client.$transaction([
+      // Detach the agent from all conversations so future messages
+      // no longer consider this agent or its tools.
+      this.prisma.client.conversationAgent.deleteMany({
+        where: { agentId },
+      }),
+      // Remove all tools associated with this agent.
+      this.prisma.client.agentTool.deleteMany({
+        where: { agentId },
+      }),
+      // Finally, delete the agent record itself.
+      this.prisma.client.agent.delete({
+        where: { id: agentId },
+      }),
+    ]);
 
     return { success: true };
   }

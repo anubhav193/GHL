@@ -178,10 +178,7 @@ onMounted(() => {
 
 <template>
   <section class="space-y-4">
-    <header class="space-y-1">
-      <p class="text-xs uppercase tracking-wide text-text-subtle">
-        App / Integrations
-      </p>
+    <header>
       <h1 class="text-xl font-semibold text-text-primary">
         Integrations
       </h1>
@@ -247,15 +244,33 @@ onMounted(() => {
             </div>
 
             <div class="flex items-center gap-4">
-              <div class="flex items-center gap-2">
-                <div class="w-[110px]">
+              <div class="flex items-center gap-4">
+                <span
+                  v-if="integration.status === 'connected'"
+                  class="text-xs text-text-muted whitespace-nowrap"
+                  :title="`${integration.agentsUsingCount} agent(s) use this integration`"
+                >
+                  {{ integration.agentsUsingCount }}
+                  {{ integration.agentsUsingCount === 1 ? 'agent' : 'agents' }}
+                </span>
+                <div
+                  class="w-[110px]"
+                  :title="
+                    integration.agentsUsingCount > 0
+                      ? 'Remove this integration from all agents before disconnecting.'
+                      : undefined
+                  "
+                >
                   <Button
                     v-if="integration.status === 'connected'"
                     size="sm"
                     variant="danger"
                     class="w-full"
                     :loading="disconnectingIntegrationId === integration.id"
-                    :disabled="disconnectingIntegrationId === integration.id"
+                    :disabled="
+                      disconnectingIntegrationId === integration.id ||
+                      integration.agentsUsingCount > 0
+                    "
                     @click="handleDisconnect(integration)"
                   >
                     Disconnect

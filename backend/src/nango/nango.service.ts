@@ -33,11 +33,15 @@ interface NangoListConnectionsResponse {
 interface NangoScriptActionConfig {
   name: string;
   description?: string;
+  json_schema?: Record<string, unknown>;
+  returns?: string[];
 }
 
 interface NangoScriptSyncConfig {
   name: string;
   description?: string;
+  json_schema?: Record<string, unknown>;
+  returns?: string[];
 }
 
 interface NangoScriptsConfig {
@@ -136,5 +140,34 @@ export class NangoService {
 
     // In 'nango' format this should already be an array of config objects.
     return (result as any as NangoScriptsConfig[]) ?? [];
+  }
+
+  async triggerAction(params: {
+    integrationKey: string;
+    connectionId: string;
+    actionName: string;
+    input: Record<string, unknown>;
+  }): Promise<unknown> {
+    const { integrationKey, connectionId, actionName, input } = params;
+    // The Node SDK returns the action result directly.
+    return this.nango.triggerAction(integrationKey, connectionId, actionName, input as any);
+  }
+
+  async listRecords(params: {
+    providerConfigKey: string;
+    connectionId: string;
+    model: string;
+    cursor?: string;
+    limit?: number;
+  }): Promise<unknown> {
+    const { providerConfigKey, connectionId, model, cursor, limit } = params;
+
+    return this.nango.listRecords({
+      providerConfigKey,
+      connectionId,
+      model,
+      cursor,
+      limit,
+    } as any);
   }
 }
