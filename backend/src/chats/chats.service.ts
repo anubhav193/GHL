@@ -399,57 +399,30 @@ export class ChatsService {
     }[],
   ): ChatCompletionMessageParam[] {
     const result: ChatCompletionMessageParam[] = [];
-    let lastWasAssistantWithToolCalls = false;
 
     for (const m of dbMessages) {
       if (m.role === 'user') {
         result.push({ role: 'user', content: m.content });
-        lastWasAssistantWithToolCalls = false;
         continue;
       }
 
       if (m.role === 'assistant') {
-        const toolCalls = Array.isArray(m.tool_calls_json)
-          ? normalizeToolCalls(
-              m.tool_calls_json as Array<{
-                id?: string;
-                type?: string;
-                function?: { name?: string; arguments?: string };
-              }>,
-            )
-          : [];
-        if (toolCalls.length) {
-          result.push({
-            role: 'assistant',
-            content: m.content || null,
-            tool_calls: toolCalls,
-          } as ChatCompletionMessageParam);
-          lastWasAssistantWithToolCalls = true;
-        } else {
-          result.push({ role: 'assistant', content: m.content });
-          lastWasAssistantWithToolCalls = false;
-        }
+        // Historically we may have stored tool_calls and tool messages.
+        // To avoid any invariant issues with older data, we only replay
+        // the assistant's natural language content and drop any tool_calls.
+        result.push({ role: 'assistant', content: m.content });
         continue;
       }
 
+      // Drop historical tool messages from the prompt entirely. Their
+      // effects should already be reflected in prior assistant messages,
+      // and including them risks violating the OpenAI tools invariants.
       if (m.role === 'tool') {
-        // Safety: only include tool messages if they directly follow
-        // an assistant message that had tool_calls. This avoids sending
-        // orphaned tool messages that the API rejects.
-        if (!lastWasAssistantWithToolCalls) continue;
-        result.push({
-          role: 'tool',
-          content: m.content,
-          tool_call_id: m.tool_call_id ?? '',
-        } as ChatCompletionMessageParam);
-        // After a tool response, the next message is expected to be assistant/user.
-        lastWasAssistantWithToolCalls = false;
         continue;
       }
 
       // Fallback: treat unknown roles as user for robustness.
       result.push({ role: 'user', content: m.content });
-      lastWasAssistantWithToolCalls = false;
     }
 
     return result;
