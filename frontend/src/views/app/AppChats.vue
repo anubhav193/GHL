@@ -492,6 +492,7 @@ async function saveConversationAgents() {
                   :key="msg.id ?? `tmp-${i}`"
                 >
                   <ChatMessageBubble
+                    v-if="!(msg.role === 'assistant' && (msg.status ?? 'default') === 'streaming' && !msg.content.trim())"
                     :role="msg.role"
                     :status="msg.status ?? 'default'"
                   >
@@ -529,6 +530,16 @@ async function saveConversationAgents() {
                     </template>
                     <template v-else>
                       <div
+                        v-if="msg.role === 'tool'"
+                        class="flex items-center gap-2 text-xs font-mono text-text-secondary"
+                      >
+                        <Spinner :size="14" />
+                        <span class="whitespace-pre-wrap">
+                          {{ msg.content }}
+                        </span>
+                      </div>
+                      <div
+                        v-else
                         class="prose prose-sm max-w-none"
                         v-html="renderMarkdown(msg.content)"
                       />

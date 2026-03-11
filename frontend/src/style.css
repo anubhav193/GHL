@@ -19,7 +19,7 @@ tr {
 }
 
 table {
-  margin: 15px auto;
+  margin: 15px 0;
   padding: 10px;
   border-radius: 10px;
   border: 1px solid #E5E7EB;
