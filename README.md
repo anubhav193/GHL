@@ -10,7 +10,7 @@ The repo is split into a `frontend` (Vue 3 + Vite) and a `backend` (NestJS + Pri
 
 ```mermaid
 graph TD
-  Browser["Vue 3 SPA (frontend)"] -->|HTTPS (fetch)| API["NestJS REST API (backend)"]
+  Browser["Vue 3 SPA (frontend)"] --> API["NestJS REST API (backend)"]
 
   API --> Auth["Auth & Users"]
   API --> Chats["Chats, agents & tool orchestration"]
